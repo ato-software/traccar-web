@@ -13,6 +13,7 @@ import BatteryCharging20Icon from '@mui/icons-material/BatteryCharging20';
 import ErrorIcon from '@mui/icons-material/Error';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { useState, useEffect, useRef } from 'react';
 import { devicesActions } from '../store';
 import {
   formatAlarm, formatBoolean, formatPercentage, formatStatus, getStatusColor,
@@ -67,6 +68,16 @@ const DeviceRow = ({ devices, index, style }) => {
 
   const devicePrimary = useAttributePreference('devicePrimary', 'name');
   const deviceSecondary = useAttributePreference('deviceSecondary', '');
+
+  // Store the last known engineStatus to persist it between updates
+  const lastEngineStatusRef = useRef(null);
+  
+  // Update the stored engine status only when we receive a new one
+  useEffect(() => {
+    if (position?.attributes?.hasOwnProperty('engineStatus')) {
+      lastEngineStatusRef.current = position.attributes.engineStatus;
+    }
+  }, [position?.attributes?.engineStatus]);
 
   const secondaryText = () => {
     let status;
@@ -153,7 +164,13 @@ const DeviceRow = ({ devices, index, style }) => {
               <EngineToggleButton
                 deviceId={item.id}
                 deviceName={item.name}
-                ignitionOn={position.attributes.ignition}
+                // engineStatus: 1 = enabled, 2 = blocked/cut
+                // Use the last known engineStatus if available, otherwise check current position
+                isBlocked={
+                  lastEngineStatusRef.current !== null 
+                    ? lastEngineStatusRef.current === 2
+                    : !position.attributes.ignition
+                }
                 onCommandSent={(res) => console.log('Command sent:', res)}
               />
             )}

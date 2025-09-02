@@ -6,7 +6,7 @@ import {
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { useTranslation } from '../common/components/LocalizationProvider';
 
-const EngineToggleButton = ({ deviceId, deviceName, ignitionOn, onCommandSent }) => {
+const EngineToggleButton = ({ deviceId, deviceName, isBlocked, onCommandSent }) => {
   const t = useTranslation();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ const EngineToggleButton = ({ deviceId, deviceName, ignitionOn, onCommandSent })
     setConfirmOpen(false);
     setLoading(true);
 
-    const commandType = ignitionOn ? 'engineStop' : 'engineResume';
+    const commandType = isBlocked ? 'engineResume' : 'engineStop';
 
     try {
       const response = await fetch('/api/commands/send', {
@@ -44,7 +44,7 @@ const EngineToggleButton = ({ deviceId, deviceName, ignitionOn, onCommandSent })
       
       setSnackbar({
         open: true,
-        message: ignitionOn ? t('commandEngineStopSuccess') : t('commandEngineStartSuccess'),
+        message: isBlocked ? t('commandEngineStartSuccess') : t('commandEngineStopSuccess'),
         severity: 'success'
       });
 
@@ -73,7 +73,7 @@ const EngineToggleButton = ({ deviceId, deviceName, ignitionOn, onCommandSent })
 
   return (
     <>
-      <Tooltip title={ignitionOn ? t('commandEngineStop') : t('commandEngineStart')}>
+      <Tooltip title={isBlocked ? t('commandEngineStart') : t('commandEngineStop')}>
         <span>
           <IconButton 
             size="small" 
@@ -82,7 +82,7 @@ const EngineToggleButton = ({ deviceId, deviceName, ignitionOn, onCommandSent })
           >
             <PowerSettingsNewIcon
               fontSize="small"
-              style={{ color: ignitionOn ? '#f44336' : '#4caf50' }}
+              style={{ color: isBlocked ? '#f44336' : '#4caf50' }}
             />
           </IconButton>
         </span>
@@ -94,13 +94,13 @@ const EngineToggleButton = ({ deviceId, deviceName, ignitionOn, onCommandSent })
         onClick={(e) => e.stopPropagation()}
       >
         <DialogTitle>
-          {ignitionOn ? t('commandEngineStop') : t('commandEngineStart')}
+          {isBlocked ? t('commandEngineStart') : t('commandEngineStop')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {ignitionOn 
-              ? t('confirmEngineStop').replace('{device}', deviceName || `Device ${deviceId}`)
-              : t('confirmEngineStart').replace('{device}', deviceName || `Device ${deviceId}`)
+            {isBlocked 
+              ? t('confirmEngineStart').replace('{device}', deviceName || `Device ${deviceId}`)
+              : t('confirmEngineStop').replace('{device}', deviceName || `Device ${deviceId}`)
             }
           </DialogContentText>
         </DialogContent>
@@ -112,23 +112,23 @@ const EngineToggleButton = ({ deviceId, deviceName, ignitionOn, onCommandSent })
             onClick={handleConfirm} 
             variant="contained"
             autoFocus
-            sx={ignitionOn ? { 
-              backgroundColor: '#f44336',
-              color: '#ffffff',
-              '&:hover': { 
-                backgroundColor: '#d32f2f',
-                color: '#ffffff'
-              }
-            } : { 
-              backgroundColor: '#4caf50', 
+            sx={isBlocked ? { 
+              backgroundColor: '#4caf50',
               color: '#ffffff',
               '&:hover': { 
                 backgroundColor: '#45a049',
                 color: '#ffffff'
+              }
+            } : { 
+              backgroundColor: '#d32f2f', 
+              color: '#ffffff',
+              '&:hover': { 
+                backgroundColor: '#d32f2f',
+                color: '#ffffff'
               } 
             }}
           >
-            {ignitionOn ? t('commandEngineStop') : t('commandEngineStart')}
+            {isBlocked ? t('commandEngineStart') : t('commandEngineStop')}
           </Button>
         </DialogActions>
       </Dialog>
