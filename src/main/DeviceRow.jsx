@@ -22,6 +22,7 @@ import { mapIconKey, mapIcons } from '../map/core/preloadImages';
 import { useAdministrator } from '../common/util/permissions';
 import EngineIcon from '../resources/images/data/engine.svg?react';
 import { useAttributePreference } from '../common/util/preferences';
+import EngineToggleButton from './EngineToggleButton';
 
 dayjs.extend(relativeTime);
 
@@ -146,6 +147,15 @@ const DeviceRow = ({ devices, index, style }) => {
                   )}
                 </IconButton>
               </Tooltip>
+            )}
+
+            {admin && (
+              <EngineToggleButton
+                deviceId={item.id}
+                deviceName={item.name}
+                ignitionOn={position.attributes.ignition}
+                onCommandSent={(res) => console.log('Command sent:', res)}
+              />
             )}
           </>
         )}
