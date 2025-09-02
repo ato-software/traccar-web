@@ -1,15 +1,16 @@
 import { useTheme, useMediaQuery } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { makeStyles } from 'tss-react/mui';
-import Logo from '../resources/images/logo.svg?react';
+import Logo from '../resources/images/logo-2.svg?react';
+import LogoGif from '../resources/images/logo.gif';
 
 const useStyles = makeStyles()((theme) => ({
   image: {
     alignSelf: 'center',
-    maxWidth: '240px',
-    maxHeight: '120px',
-    width: 'auto',
-    height: 'auto',
+    maxWidth: '300px',
+    maxHeight: '300px',
+    width: '300px',
+    height: '300px',
     margin: theme.spacing(2),
   },
 }));
@@ -29,7 +30,8 @@ const LogoImage = ({ color }) => {
     }
     return <img className={classes.image} src={logo} alt="" />;
   }
-  return <Logo className={classes.image} style={{ color }} />;
+  // Use GIF logo instead of SVG
+  return <img className={classes.image} src={LogoGif} alt="" />;
 };
 
 export default LogoImage;
