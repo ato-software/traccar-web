@@ -153,12 +153,12 @@ const LoginPage = () => {
             </Tooltip>
           </IconButton>
         )}
-        {!nativeEnvironment && (
+        {false && !nativeEnvironment && (
           <IconButton color="primary" onClick={() => setShowQr(true)}>
             <QrCode2Icon />
           </IconButton>
         )}
-        {languageEnabled && (
+        {false && languageEnabled && (
           <FormControl>
             <Select value={language} onChange={(e) => setLocalLanguage(e.target.value)}>
               {languageList.map((it) => (
