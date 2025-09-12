@@ -144,6 +144,11 @@ const TripReportPage = () => {
               headers: { Accept: 'application/json' },
             }).then(response => response.json())
           );
+          
+          // Stop if we've reached the original end date
+          if (clampedEnd.getTime() >= originalToUTC.getTime()) {
+            break;
+          }
         }
         
         // Move to next day

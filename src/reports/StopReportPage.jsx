@@ -56,15 +56,76 @@ const StopReportPage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const onShow = useCatch(async ({ deviceIds, groupIds, from, to }) => {
-    const query = new URLSearchParams({ from, to });
-    deviceIds.forEach((deviceId) => query.append('deviceId', deviceId));
-    groupIds.forEach((groupId) => query.append('groupId', groupId));
     setLoading(true);
     try {
-      const response = await fetchOrThrow(`/api/reports/stops?${query.toString()}`, {
-        headers: { Accept: 'application/json' },
-      });
-      setItems(await response.json());
+      // Original UTC boundaries from parameters
+      const originalFromUTC = new Date(from);
+      const originalToUTC = new Date(to);
+      
+      // Offset for Asia/Karachi timezone (UTC+5)
+      const offsetMs = 5 * 60 * 60 * 1000;
+      
+      // Convert UTC boundaries to Karachi local time to find day boundaries
+      const startInKarachi = new Date(originalFromUTC.getTime() + offsetMs);
+      const endInKarachi = new Date(originalToUTC.getTime() + offsetMs);
+      
+      // Build array of fetch promises for each day
+      const fetchPromises = [];
+      
+      // Start from the first day in Karachi time
+      const currentDate = new Date(startInKarachi);
+      currentDate.setHours(0, 0, 0, 0); // Set to midnight Karachi time
+      
+      while (currentDate <= endInKarachi) {
+        // Create day boundaries in Karachi local time
+        const dayStartKarachi = new Date(currentDate);
+        dayStartKarachi.setHours(0, 0, 0, 0);
+        
+        const dayEndKarachi = new Date(currentDate);
+        dayEndKarachi.setHours(23, 59, 59, 999);
+        
+        // Convert Karachi boundaries to UTC
+        const dayStartUTC = new Date(dayStartKarachi.getTime() - offsetMs);
+        const dayEndUTC = new Date(dayEndKarachi.getTime() - offsetMs);
+        
+        // Clamp against original UTC boundaries
+        const clampedStart = dayStartUTC < originalFromUTC ? originalFromUTC : dayStartUTC;
+        const clampedEnd = dayEndUTC > originalToUTC ? originalToUTC : dayEndUTC;
+        
+        // Only fetch if the range is valid
+        if (clampedStart <= clampedEnd) {
+          // Build query for this day
+          const query = new URLSearchParams({ 
+            from: clampedStart.toISOString(), 
+            to: clampedEnd.toISOString() 
+          });
+          deviceIds.forEach((deviceId) => query.append('deviceId', deviceId));
+          groupIds.forEach((groupId) => query.append('groupId', groupId));
+          
+          // Add fetch promise to array
+          fetchPromises.push(
+            fetchOrThrow(`/api/reports/stops?${query.toString()}`, {
+              headers: { Accept: 'application/json' },
+            }).then(response => response.json())
+          );
+          
+          // Stop if we've reached the original end date
+          if (clampedEnd.getTime() >= originalToUTC.getTime()) {
+            break;
+          }
+        }
+        
+        // Move to next day
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      // Execute all fetches in parallel
+      const allDayResults = await Promise.all(fetchPromises);
+      
+      // Flatten all results into single array
+      const allStops = allDayResults.flat();
+      
+      setItems(allStops);
     } finally {
       setLoading(false);
     }
