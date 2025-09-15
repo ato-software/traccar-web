@@ -27,7 +27,7 @@ const officialServers = [
   'https://demo3.traccar.org',
   'https://demo4.traccar.org',
   'https://server.traccar.org',
-  'http://localhost:8082',
+  'http://192.168.100.100:8082',
   'http://localhost:3000',
 ].filter((value, index, self) => self.indexOf(value) === index);
 
